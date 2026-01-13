@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pydantic
+python-dotenv
+langchain
+openai
+langchain-community
+pgvector
+psycopg[binary]

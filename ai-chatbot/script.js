@@ -71,9 +71,10 @@ const handleSubmit = async (e) => {
   e.preventDefault(); // prevent default browser reload
 
   const data = new FormData(form); // get the data typed into form
+  const userPrompt = data.get('prompt');
 
   // generate new user chat stripe
-  chatContainer.innerHTML += chatStripe(false, data.get('prompt'))
+  chatContainer.innerHTML += chatStripe(false, userPrompt);
 
   // clear text input
   form.reset();
@@ -90,7 +91,18 @@ const handleSubmit = async (e) => {
   
   // load the new message
   loader(messageDiv);
-}
+
+   try {
+    const response = await send(userPrompt);
+    clearInterval(loadInterval);
+    messageDiv.innerHTML = '';
+    typeText(messageDiv, response.answer);
+  } catch (err) {
+    clearInterval(loadInterval);
+    messageDiv.innerHTML = "Something went wrong.";
+    console.error(err);
+  }
+};
 
 /* "Ask about me" pop-message when button is clicked */
 const popText = document.getElementById('btn_text');
@@ -105,6 +117,21 @@ popText.addEventListener('animationend', () => {
   popText.classList.remove('popup-message');
   popText.classList.add('hidden');
 });
+
+
+/* Fetch data from OpenAI */
+const textarea = document.querySelector('textarea');
+
+async function send(prompt) {
+  const res = await fetch("http://localhost:8000/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ q: prompt }),
+  });
+  return await res.json();
+  console.log("response from API:", res);  // shows response from FastAPI
+}
+
 
 /* fetch data from OpenAI server -> bot's response*/
 // const resp = await fetch("http://127.0.0.1:5000/chat", { 
@@ -132,6 +159,7 @@ popText.addEventListener('animationend', () => {
 
 //   alert(err);
 // }
+
 
 /* load history of chats in the side menu */
 
